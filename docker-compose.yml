@@ -1,0 +1,33 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sklady
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sklady}
+      POSTGRES_DB: sklady
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sklady -d sklady"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      DATABASE_URL: postgres://sklady:${POSTGRES_PASSWORD:-sklady}@db:5432/sklady
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Ustaw ADMIN_PASSWORD w pliku .env}
+      SESSION_SECRET: ${SESSION_SECRET:?Ustaw SESSION_SECRET w pliku .env}
+      DEFAULT_SHOW_MMR: ${DEFAULT_SHOW_MMR:-false}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+
+volumes:
+  pgdata:
