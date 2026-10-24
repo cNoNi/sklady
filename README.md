@@ -26,7 +26,19 @@ docker compose exec db pg_dump -U sklady sklady > kopia.sql   # kopia bazy
 
 Za reverse proxy z HTTPS ustaw w `.env` `COOKIE_SECURE=true`.
 
-Bez Dockera: potrzebny własny PostgreSQL, zmienne z `.env.example` plus `DATABASE_URL`, potem `npm install && npm run dev`.
+## Praca lokalna (`npm run dev`)
+
+Aplikacja uruchamiana poza Dockerem potrzebuje bazy dostępnej z hosta. Plik `docker-compose.dev.yml` wystawia ją
+tylko na `127.0.0.1:5432` (inny port: `DB_PORT` w `.env`):
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d db
+npm install && npm run dev
+```
+
+W `.env` dodaj wtedy `DATABASE_URL=postgres://sklady:<POSTGRES_PASSWORD>@127.0.0.1:5432/sklady`.
+Baza korzysta z tego samego wolumenu `pgdata`, więc widać w niej tych samych graczy co w wersji z Dockera.
+Jeśli działa też kontener `app`, zatrzymaj go (`docker compose stop app`), żeby nie zajmował portu 3000.
 
 ## Ukrywanie MMR
 

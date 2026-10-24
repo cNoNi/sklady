@@ -3,7 +3,7 @@
 import { useEffect, useId, useMemo, useState } from "react";
 
 type NickEntry = { nick: string; playerId: number; player: string };
-type TeamPlayer = { name: string; mmr?: number };
+type TeamPlayer = { name: string; mmr?: number; role?: string };
 type Variant = {
   teamA: TeamPlayer[];
   teamB: TeamPlayer[];
@@ -16,6 +16,7 @@ type Variant = {
 type Result = { showMmr: boolean; variants: Variant[] };
 
 const SLOTS = 10;
+const ROLE_LABELS: Record<string, string> = { top: "Top", jg: "Jungle", mid: "Mid", adc: "ADC", support: "Support" };
 const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ");
 
 export default function Balancer() {
@@ -26,6 +27,7 @@ export default function Balancer() {
   const [idx, setIdx] = useState(0);
   const [errors, setErrors] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
+  const [withRoles, setWithRoles] = useState(false);
 
   useEffect(() => {
     fetch("/api/nicknames")
@@ -58,7 +60,7 @@ export default function Balancer() {
       const res = await fetch("/api/balance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nicks: values }),
+        body: JSON.stringify({ nicks: values, roles: withRoles }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -113,6 +115,10 @@ export default function Balancer() {
             <option key={e.nick} value={e.nick} />
           ))}
         </datalist>
+        <label className="switch">
+          <input type="checkbox" checked={withRoles} onChange={(e) => setWithRoles(e.target.checked)} />
+          Losuj także linie
+        </label>
         <div className="row">
           <button className="pri" onClick={submit} disabled={busy}>
             {busy ? "Liczę…" : "Dobierz składy"}
@@ -170,7 +176,10 @@ function TeamBox({ cls, title, total, players }: { cls: string; title: string; t
       <ul>
         {players.map((p) => (
           <li key={p.name}>
-            <span>{p.name}</span>
+            <span>
+              {p.role && <span className="role">{ROLE_LABELS[p.role] ?? p.role}</span>}
+              {p.name}
+            </span>
             {p.mmr !== undefined && <span className="mmr">{p.mmr}</span>}
           </li>
         ))}

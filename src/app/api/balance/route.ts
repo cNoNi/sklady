@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { computeSplits, describeBalance, type Rated } from "@/lib/balance";
+import { assignRoles, computeSplits, describeBalance, ROLES, type Rated, type Role } from "@/lib/balance";
 import { query } from "@/lib/db";
 import { errorResponse, HttpError } from "@/lib/errors";
 import { normNick } from "@/lib/nick";
@@ -7,7 +7,7 @@ import { getShowMmr } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
 
-type PublicPlayer = { name: string; mmr?: number };
+type PublicPlayer = { name: string; mmr?: number; role?: Role };
 
 /**
  * Dobór składów odbywa się wyłącznie na serwerze. Gdy MMR jest ukryty, w odpowiedzi
@@ -17,6 +17,7 @@ export async function POST(req: Request) {
   try {
     const body: unknown = await req.json().catch(() => null);
     const nicks = (body as { nicks?: unknown } | null)?.nicks;
+    const withRoles = (body as { roles?: unknown } | null)?.roles === true;
     if (!Array.isArray(nicks) || nicks.length !== 10 || nicks.some((n) => typeof n !== "string")) {
       throw new HttpError(400, "Wpisz dokładnie 10 nicków.");
     }
@@ -53,10 +54,17 @@ export async function POST(req: Request) {
     if (errors.length) return NextResponse.json({ errors }, { status: 400 });
 
     const showMmr = await getShowMmr();
-    const present = (team: Rated[]): PublicPlayer[] =>
-      showMmr
+    const present = (team: Rated[]): PublicPlayer[] => {
+      if (withRoles) {
+        // z liniami: kolejność top → support, każda linia dokładnie raz w drużynie
+        return assignRoles(team)
+          .sort((a, b) => ROLES.indexOf(a.role) - ROLES.indexOf(b.role))
+          .map((p) => ({ name: p.name, role: p.role, ...(showMmr ? { mmr: p.mmr } : {}) }));
+      }
+      return showMmr
         ? [...team].sort((a, b) => b.mmr - a.mmr).map((p) => ({ name: p.name, mmr: p.mmr }))
         : team.map((p) => ({ name: p.name })).sort((a, b) => a.name.localeCompare(b.name, "pl"));
+    };
 
     const variants = computeSplits(picked).map((s) => {
       const b = describeBalance(s.diff, s.sumA + s.sumB);

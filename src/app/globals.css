@@ -40,3 +40,4 @@ button.pri{background:var(--a);color:#fff;border:0;border-radius:8px;padding:11p
 .switch input{width:1.2rem;height:1.2rem;margin:0;accent-color:var(--a)}
 .hint{color:var(--mute);font-size:.88rem;margin:8px 0 0}
 code{font-size:.85em;word-break:break-all}
+.role{display:inline-block;min-width:4.6rem;color:var(--mute);font-size:.82rem;font-weight:600;text-transform:uppercase;letter-spacing:.03em}

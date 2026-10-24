@@ -40,3 +40,17 @@ export function describeBalance(diff: number, total: number): { label: string; l
   if (r <= 0.05) return { label: "Wyrównane", level: 2 };
   return { label: "Widoczna różnica poziomu", level: 3 };
 }
+
+export const ROLES = ["top", "jg", "mid", "adc", "support"] as const;
+export type Role = (typeof ROLES)[number];
+
+/** Losowo przydziela każdemu z 5 graczy drużyny inną linię (tasowanie Fishera–Yatesa). */
+export function assignRoles<T>(team: T[]): (T & { role: Role })[] {
+  if (team.length !== ROLES.length) throw new Error("Drużyna musi mieć 5 graczy.");
+  const roles = [...ROLES];
+  for (let i = roles.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [roles[i], roles[j]] = [roles[j], roles[i]];
+  }
+  return team.map((p, i) => ({ ...p, role: roles[i] }));
+}
