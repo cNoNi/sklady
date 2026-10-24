@@ -35,6 +35,16 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
+    networks:
+      default:
+      # nginx-proxy (~/Projects/nginx-proxy) wystawia aplikację na 80/443 pod nazwą sklady-app
+      proxy-network:
+        aliases:
+          - sklady-app
 
 volumes:
   pgdata:
+
+networks:
+  proxy-network:
+    external: true
