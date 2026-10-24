@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useMemo, useState } from "react";
+import { copyOrDownloadPng, renderTeamsPng } from "@/lib/team-image";
 
 type NickEntry = { nick: string; playerId: number; player: string };
 type TeamPlayer = { name: string; mmr?: number; role?: string };
@@ -29,6 +30,7 @@ export default function Balancer() {
   const [busy, setBusy] = useState(false);
   const [withRoles, setWithRoles] = useState(false);
   const [random, setRandom] = useState(false);
+  const [copyMsg, setCopyMsg] = useState("");
 
   useEffect(() => {
     fetch("/api/nicknames")
@@ -81,6 +83,27 @@ export default function Balancer() {
     } finally {
       setBusy(false);
     }
+  }
+
+  async function copyImage() {
+    if (!v) return;
+    try {
+      const how = await copyOrDownloadPng(
+        () =>
+          renderTeamsPng(
+            [
+              { title: "Drużyna A", total: v.sumA, players: v.teamA },
+              { title: "Drużyna B", total: v.sumB, players: v.teamB },
+            ],
+            (role) => ROLE_LABELS[role] ?? role
+          ),
+        "sklady.png"
+      );
+      setCopyMsg(how === "copied" ? "Skopiowano obraz" : "Pobrano obraz");
+    } catch {
+      setCopyMsg("Nie udało się skopiować obrazu");
+    }
+    setTimeout(() => setCopyMsg(""), 2500);
   }
 
   function clear() {
@@ -171,6 +194,14 @@ export default function Balancer() {
             <button className="sec" onClick={() => setIdx((i) => (i + 1) % result.variants.length)}>
               Pokaż kolejny wariant
             </button>
+            <button className="sec" onClick={copyImage}>
+              Kopiuj jako obraz
+            </button>
+            {copyMsg && (
+              <span className="msg ok" role="status">
+                {copyMsg}
+              </span>
+            )}
           </div>
         </div>
       )}
