@@ -32,6 +32,20 @@ export function computeSplits(players: Rated[], limit = 20): Split[] {
   });
 }
 
+/** Zwraca `limit` całkowicie losowych podziałów 5v5, bez patrzenia na MMR. */
+export function randomSplits(players: Rated[], limit = 20): Split[] {
+  if (players.length !== 10) throw new Error("Potrzeba dokładnie 10 graczy.");
+  const sum = (t: Rated[]) => t.reduce((s, p) => s + p.mmr, 0);
+  return Array.from({ length: limit }, () => {
+    const order = shuffle(players);
+    const teamA = order.slice(0, 5);
+    const teamB = order.slice(5);
+    const sumA = sum(teamA);
+    const sumB = sum(teamB);
+    return { teamA, teamB, sumA, sumB, diff: Math.abs(sumA - sumB) };
+  });
+}
+
 /** Opisowa ocena wyrównania – bezpieczna do pokazania, gdy MMR jest ukryty. */
 export function describeBalance(diff: number, total: number): { label: string; level: 0 | 1 | 2 | 3 } {
   const r = total > 0 ? diff / total : 0;
@@ -44,13 +58,19 @@ export function describeBalance(diff: number, total: number): { label: string; l
 export const ROLES = ["top", "jg", "mid", "adc", "support"] as const;
 export type Role = (typeof ROLES)[number];
 
-/** Losowo przydziela każdemu z 5 graczy drużyny inną linię (tasowanie Fishera–Yatesa). */
+/** Losowo przydziela każdemu z 5 graczy drużyny inną linię. */
 export function assignRoles<T>(team: T[]): (T & { role: Role })[] {
   if (team.length !== ROLES.length) throw new Error("Drużyna musi mieć 5 graczy.");
-  const roles = [...ROLES];
-  for (let i = roles.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [roles[i], roles[j]] = [roles[j], roles[i]];
-  }
+  const roles = shuffle(ROLES);
   return team.map((p, i) => ({ ...p, role: roles[i] }));
+}
+
+/** Tasowanie Fishera–Yatesa; zwraca nową tablicę. */
+function shuffle<T>(items: readonly T[]): T[] {
+  const out = [...items];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
 }

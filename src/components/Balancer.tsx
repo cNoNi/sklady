@@ -13,7 +13,7 @@ type Variant = {
   sumB?: number;
   diff?: number;
 };
-type Result = { showMmr: boolean; variants: Variant[] };
+type Result = { showMmr: boolean; random?: boolean; variants: Variant[] };
 
 const SLOTS = 10;
 const ROLE_LABELS: Record<string, string> = { top: "Top", jg: "Jungle", mid: "Mid", adc: "ADC", support: "Support" };
@@ -28,6 +28,7 @@ export default function Balancer() {
   const [errors, setErrors] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [withRoles, setWithRoles] = useState(false);
+  const [random, setRandom] = useState(false);
 
   useEffect(() => {
     fetch("/api/nicknames")
@@ -60,7 +61,7 @@ export default function Balancer() {
       const res = await fetch("/api/balance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nicks: values, roles: withRoles }),
+        body: JSON.stringify({ nicks: values, roles: withRoles, random }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -137,9 +138,12 @@ export default function Balancer() {
           <h2>Ustawienia losowania</h2>
           <label className="switch">
             <input type="checkbox" checked={withRoles} onChange={(e) => setWithRoles(e.target.checked)} />
-            Losuj także linie
+            Losuj linie
           </label>
-          <p className="hint">Każdy gracz dostanie linię: top, jungle, mid, adc lub support – bez powtórzeń w drużynie.</p>
+          <label className="switch">
+            <input type="checkbox" checked={random} onChange={(e) => setRandom(e.target.checked)} />
+            Całkowicie losowe składy
+          </label>
         </div>
       </div>
 
@@ -160,7 +164,8 @@ export default function Balancer() {
                 Wyrównanie: <b>{v.quality}</b>.{" "}
               </>
             )}
-            Wariant {idx + 1} z {result.variants.length}, od najuczciwszego.
+            Wariant {idx + 1} z {result.variants.length}
+            {result.random ? "." : ", od najuczciwszego."}
           </p>
           <div className="row">
             <button className="sec" onClick={() => setIdx((i) => (i + 1) % result.variants.length)}>

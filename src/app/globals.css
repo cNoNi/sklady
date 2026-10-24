@@ -45,3 +45,4 @@ code{font-size:.85em;word-break:break-all}
 .setup .card{margin-bottom:14px}
 .settings{position:sticky;top:14px}
 @media(max-width:640px){.setup{grid-template-columns:1fr}.setup .settings{position:static;order:-1}}
+.settings .switch+.switch{margin-top:10px}

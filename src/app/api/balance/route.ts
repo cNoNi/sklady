@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { assignRoles, computeSplits, describeBalance, ROLES, type Rated, type Role } from "@/lib/balance";
+import { assignRoles, computeSplits, randomSplits, describeBalance, ROLES, type Rated, type Role } from "@/lib/balance";
 import { query } from "@/lib/db";
 import { errorResponse, HttpError } from "@/lib/errors";
 import { normNick } from "@/lib/nick";
@@ -18,6 +18,7 @@ export async function POST(req: Request) {
     const body: unknown = await req.json().catch(() => null);
     const nicks = (body as { nicks?: unknown } | null)?.nicks;
     const withRoles = (body as { roles?: unknown } | null)?.roles === true;
+    const random = (body as { random?: unknown } | null)?.random === true;
     if (!Array.isArray(nicks) || nicks.length !== 10 || nicks.some((n) => typeof n !== "string")) {
       throw new HttpError(400, "Wpisz dokładnie 10 nicków.");
     }
@@ -66,7 +67,7 @@ export async function POST(req: Request) {
         : team.map((p) => ({ name: p.name })).sort((a, b) => a.name.localeCompare(b.name, "pl"));
     };
 
-    const variants = computeSplits(picked).map((s) => {
+    const variants = (random ? randomSplits(picked) : computeSplits(picked)).map((s) => {
       const b = describeBalance(s.diff, s.sumA + s.sumB);
       return {
         teamA: present(s.teamA),
@@ -77,7 +78,7 @@ export async function POST(req: Request) {
       };
     });
 
-    return NextResponse.json({ showMmr, variants });
+    return NextResponse.json({ showMmr, random, variants });
   } catch (e) {
     return errorResponse(e);
   }
