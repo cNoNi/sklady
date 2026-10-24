@@ -41,3 +41,7 @@ button.pri{background:var(--a);color:#fff;border:0;border-radius:8px;padding:11p
 .hint{color:var(--mute);font-size:.88rem;margin:8px 0 0}
 code{font-size:.85em;word-break:break-all}
 .role{display:inline-block;min-width:4.6rem;color:var(--mute);font-size:.82rem;font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.setup{display:grid;grid-template-columns:1fr 250px;gap:14px;align-items:start}
+.setup .card{margin-bottom:14px}
+.settings{position:sticky;top:14px}
+@media(max-width:640px){.setup{grid-template-columns:1fr}.setup .settings{position:static;order:-1}}

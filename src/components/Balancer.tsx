@@ -92,48 +92,55 @@ export default function Balancer() {
 
   return (
     <>
-      <div className="card">
-        <h2>Nicki graczy</h2>
-        {values.map((val, i) => (
-          <div className="slot" key={i}>
-            <span className="n">{i + 1}.</span>
-            <div>
-              <input
-                list={listId}
-                value={val}
-                onChange={(e) => setValues((p) => p.map((x, j) => (j === i ? e.target.value : x)))}
-                placeholder="Nick gracza"
-                autoComplete="off"
-                aria-label={`Nick gracza ${i + 1}`}
-              />
-              <div className={`st ${status[i].cls}`}>{status[i].text}</div>
+      <div className="setup">
+        <div className="card">
+          <h2>Nicki graczy</h2>
+          {values.map((val, i) => (
+            <div className="slot" key={i}>
+              <span className="n">{i + 1}.</span>
+              <div>
+                <input
+                  list={listId}
+                  value={val}
+                  onChange={(e) => setValues((p) => p.map((x, j) => (j === i ? e.target.value : x)))}
+                  placeholder="Nick gracza"
+                  autoComplete="off"
+                  aria-label={`Nick gracza ${i + 1}`}
+                />
+                <div className={`st ${status[i].cls}`}>{status[i].text}</div>
+              </div>
             </div>
-          </div>
-        ))}
-        <datalist id={listId}>
-          {entries.map((e) => (
-            <option key={e.nick} value={e.nick} />
           ))}
-        </datalist>
-        <label className="switch">
-          <input type="checkbox" checked={withRoles} onChange={(e) => setWithRoles(e.target.checked)} />
-          Losuj także linie
-        </label>
-        <div className="row">
-          <button className="pri" onClick={submit} disabled={busy}>
-            {busy ? "Liczę…" : "Dobierz składy"}
-          </button>
-          <button className="sec" onClick={clear}>
-            Wyczyść
-          </button>
-        </div>
-        {errors.length > 0 && (
-          <div className="msg bad" role="alert">
-            {errors.map((e, i) => (
-              <div key={i}>{e}</div>
+          <datalist id={listId}>
+            {entries.map((e) => (
+              <option key={e.nick} value={e.nick} />
             ))}
+          </datalist>
+          <div className="row">
+            <button className="pri" onClick={submit} disabled={busy}>
+              {busy ? "Liczę…" : "Dobierz składy"}
+            </button>
+            <button className="sec" onClick={clear}>
+              Wyczyść
+            </button>
           </div>
-        )}
+          {errors.length > 0 && (
+            <div className="msg bad" role="alert">
+              {errors.map((e, i) => (
+                <div key={i}>{e}</div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="card settings">
+          <h2>Ustawienia losowania</h2>
+          <label className="switch">
+            <input type="checkbox" checked={withRoles} onChange={(e) => setWithRoles(e.target.checked)} />
+            Losuj także linie
+          </label>
+          <p className="hint">Każdy gracz dostanie linię: top, jungle, mid, adc lub support – bez powtórzeń w drużynie.</p>
+        </div>
       </div>
 
       {result && v && (
